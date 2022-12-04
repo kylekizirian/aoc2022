@@ -13,6 +13,7 @@ type ElfAssignment struct{ Start, End int }
 func main() {
 	elves := readInput()
 	part1(elves)
+	part2(elves)
 }
 
 func part1(elves [][2]ElfAssignment) {
@@ -29,6 +30,28 @@ func part1(elves [][2]ElfAssignment) {
 	}
 
 	fmt.Println("part 1: ", numContains)
+}
+
+func part2(elves [][2]ElfAssignment) {
+	overlaps := func(first, second ElfAssignment) bool {
+		var min, max ElfAssignment
+		if first.Start < second.Start {
+			min, max = first, second
+		} else {
+			min, max = second, first
+		}
+
+		return max.Start <= min.End
+	}
+
+	var numOverlaps int
+	for _, pair := range elves {
+		if overlaps(pair[0], pair[1]) {
+			numOverlaps++
+		}
+	}
+
+	fmt.Println("part 1: ", numOverlaps)
 }
 
 func readInput() [][2]ElfAssignment {
