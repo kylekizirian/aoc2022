@@ -14,7 +14,8 @@ type Move struct {
 
 func main() {
 	crates, moves := readInput()
-	part1(crates, moves)
+	part1(deepCopyCrates(crates), moves)
+	part2(deepCopyCrates(crates), moves)
 }
 
 func part1(crates map[int][]string, moves []Move) {
@@ -34,6 +35,40 @@ func part1(crates map[int][]string, moves []Move) {
 	}
 
 	fmt.Println("part 1: ", top)
+}
+
+func part2(crates map[int][]string, moves []Move) {
+	for _, move := range moves {
+		temp := deepCopyStrings(crates[move.From][:move.Num])
+		crates[move.To] = append(temp[:move.Num], crates[move.To]...)
+		crates[move.From] = crates[move.From][move.Num:]
+	}
+
+	var top string
+	for i := 1; i < 10; i++ {
+		if len(crates[i]) > 0 {
+			top += crates[i][0]
+		}
+	}
+
+	fmt.Println("part 2: ", top)
+}
+
+func deepCopyStrings(in []string) []string {
+	deepCopy := make([]string, len(in))
+	copy(deepCopy, in)
+	return deepCopy
+}
+
+func deepCopyCrates(in map[int][]string) map[int][]string {
+	deepCopy := make(map[int][]string)
+	for i, s := range in {
+		deepCopy[i] = make([]string, len(s))
+		for j, c := range s {
+			deepCopy[i][j] = c
+		}
+	}
+	return deepCopy
 }
 
 func readInput() (map[int][]string, []Move) {
