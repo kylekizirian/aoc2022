@@ -19,18 +19,17 @@ class Entity:
         name: str,
         size: int,
         parent=None,
-        children=None,
     ):
         self.kind = kind
         self.name = name
         self.size = size
         self.parent = parent
-        self.children = {} if children is None else children
+        self.children = {}
 
 
-def buildTree(lines: List[str]) -> Entity:
+def build_tree(lines: List[str]) -> Entity:
     root = Entity(Kind.DIR, "/", 0, None)
-    curDir = root
+    cur = root
     i = 0
 
     while i < len(lines):
@@ -39,11 +38,11 @@ def buildTree(lines: List[str]) -> Entity:
 
         if cmd == "cd":
             if args[0] == "/":
-                curDir = root
+                cur = root
             elif args[0] == "..":
-                curDir = curDir.parent
+                cur = cur.parent
             else:
-                curDir = curDir.children[args[0]]
+                cur = cur.children[args[0]]
 
             i += 1
 
@@ -56,17 +55,18 @@ def buildTree(lines: List[str]) -> Entity:
                 parts = line.split()
 
                 # skip if we've already seen this file/folder
-                if parts[1] in curDir.children:
+                if parts[1] in cur.children:
                     continue
 
                 if parts[0] == "dir":
-                    curDir.children[parts[1]] = Entity(Kind.DIR, parts[1], 0, curDir)
+                    cur.children[parts[1]] = Entity(Kind.DIR, parts[1], 0, cur)
                 else:
                     size = int(parts[0])
-                    curDir.children[parts[1]] = Entity(
-                        Kind.FILE, parts[1], size, curDir
+                    cur.children[parts[1]] = Entity(
+                        Kind.FILE, parts[1], size, cur
                     )
-                    temp = curDir
+                    # update the size of all parent directories
+                    temp = cur
                     while temp is not None:
                         temp.size += size
                         temp = temp.parent
@@ -105,6 +105,6 @@ if __name__ == "__main__":
     with open(INPUT_FILE) as f:
         lines = [l.strip() for l in f.readlines()]
 
-    root = buildTree(lines)
+    root = build_tree(lines)
     part1(root)
     part2(root)
