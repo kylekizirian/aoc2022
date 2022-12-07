@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 
 INPUT_FILE = Path(__file__).parent / "input.txt"
 SIZE_CAP = 100000
+SPACE_ALLOWED = 70000000 - 30000000
 
 
 class Kind(Enum):
@@ -27,27 +28,26 @@ class Entity:
         self.children = {} if children is None else children
 
 
-def part1(lines: List[str]):
-    # TODO: if command, handle cd and ls
-    # TODO: if command output, update file system tree
+def buildTree(lines: List[str]) -> Entity:
     root = Entity(Kind.DIR, "/", 0, None)
     curDir = root
     i = 0
+
     while i < len(lines):
         line = lines[i]
-        args = line.split()
-        assert args[0] == "$", f"error args: {args}"
-        if args[1] == "cd":
-            if args[2] == "/":
+        _, cmd, *args = line.split()
+
+        if cmd == "cd":
+            if args[0] == "/":
                 curDir = root
-            elif args[2] == "..":
+            elif args[0] == "..":
                 curDir = curDir.parent
             else:
-                curDir = curDir.children[args[2]]
+                curDir = curDir.children[args[0]]
 
             i += 1
 
-        elif args[1] == "ls":
+        elif cmd == "ls":
             # iterate to next command
             i += 1
             while i < len(lines) and not lines[i].startswith("$"):
@@ -71,9 +71,10 @@ def part1(lines: List[str]):
                         temp.size += size
                         temp = temp.parent
 
-        else:
-            assert False, "unhandled line: " + line
+    return root
 
+
+def part1(root: Entity):
     # DFS from root and find dirs
     size_sum = 0
     stack = [root]
@@ -86,8 +87,24 @@ def part1(lines: List[str]):
     print(f"part 1: {size_sum}")
 
 
+def part2(root: Entity):
+    space_needed = root.size - SPACE_ALLOWED
+    # find smallest dir that's greater than or equal to space_needed
+    smallest = float("inf")
+    stack = [root]
+    while stack:
+        cur = stack.pop()
+        if cur.size >= space_needed and cur.size < smallest:
+            smallest = cur.size
+        stack += [child for child in cur.children.values() if child.kind == Kind.DIR]
+
+    print(f"part 2: {smallest}")
+
+
 if __name__ == "__main__":
     with open(INPUT_FILE) as f:
         lines = [l.strip() for l in f.readlines()]
 
-    part1(lines)
+    root = buildTree(lines)
+    part1(root)
+    part2(root)
