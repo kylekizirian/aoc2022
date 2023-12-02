@@ -1,3 +1,3 @@
-# aoc20222
+# aoc2022
 
-Adent of code 2022 solutions
+Advent of Code 2022 solutions
